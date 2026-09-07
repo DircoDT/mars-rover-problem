@@ -18,7 +18,7 @@ git clone https://github.com/DircoDT/mars-rover-problem.git
 cd mars-rover-problem
 ```
 
-Create a virtual environment and install the dependencies (specified in `pyproject.toml`):
+Create a virtual environment and install the dependencies (`pytest`, specified in `pyproject.toml`):
 
 ```
 python -m venv .venv
@@ -40,4 +40,4 @@ python -m src inputs\sample.txt
 pytest
 ```
 
-See NOTES.md to follow the architectural and design decisions made.
+See [NOTES.md](NOTES.md) to follow the architectural and design decisions made.

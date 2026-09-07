@@ -80,4 +80,19 @@ So, what are some things that may be added to the inputs, behavioural logic or o
 
 The initial architecture should avoid unnecessarily constraining these future directions. However, the design should not attempt to implement or fully abstract unknown requirements prematurely. New abstractions should be introduced when an actual requirement demonstrates that they are needed.
 
+---
+
+## Implementation details
+
+### Robust input parsing
+
+**DECISION:** The parser is intentionally lenient with whitespace, but will produce an error if it encounters other structural deviations from the expected input format.
+
+- Leading/trailing whitespace, multiple spaces, tabs, and blank lines are allowed anywhere.
+- The first non-blank line must be the grid dimensions, containing exactly two non-negative integers separated by whitespace.
+- Grid dimensions and robot positions exceeding MAX_COORDINATE (50) are not allowed.
+- Robot positioning lines contain exactly `x` `y` `direction`.
+- Orientations and commands are case-insensitive.
+- An input may contain 0 robots.
+- A robot may receive 0 commands. Commands are everything from its coordinate line up to the next robot's coordinate line (or EOF).
 
