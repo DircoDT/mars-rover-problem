@@ -42,9 +42,6 @@ def test_dimensions_allow_zero_padded_values():
         "5",
         "5 3 2",
         "5x3",
-        "5,3",
-        "5-3",
-        "5.3",
         "five 3",
         "5 three",
         "5 3 N",
@@ -54,6 +51,24 @@ def test_dimensions_allow_zero_padded_values():
 def test_invalid_dimensions_are_rejected(line):
     with pytest.raises(ValueError):
         parse_dimensions(line)
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "5,3",
+        "5, 3",
+        "5:3",
+        "5: 3",
+        "5-3",
+        "5.3",
+        "(5, 3)",
+        "[5, 3]",
+        "<5; 3>",
+    ],
+)
+def test_dimensions_allow_non_alphanumeric_characters(line):
+    assert parse_dimensions(line) == (5, 3)
 
 
 def test_maximum_grid_dimensions_are_allowed():
@@ -115,9 +130,6 @@ def test_robot_coordinates_allow_zero_padded_values():
         "1 2",
         "1 2 N extra",
         "extra 1 2 N",
-        "1,2,N",
-        "1-2-N",
-        "1.2.N",
         "1 2 X",
         "1 2 North",
         "one 2 N",
@@ -127,6 +139,23 @@ def test_robot_coordinates_allow_zero_padded_values():
 def test_invalid_robot_positions_are_rejected(line):
     with pytest.raises(ValueError):
         parse_robot_position(line)
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "1,2,N",
+        "1, 2, N",
+        "1-2-N",
+        "1.2.N",
+        "1:2:N",
+        "(1, 2, N)",
+        "(1, 2): N",
+        "[1, 2] -> N",
+    ],
+)
+def test_robot_position_allows_non_alphanumeric_characters(line):
+    assert parse_robot_position(line) == (1, 2, "N")
 
 
 @pytest.mark.parametrize(
@@ -180,16 +209,29 @@ def test_empty_commands_are_valid():
     [
         "X",
         "LFX",
-        "L-R",
-        "L,F",
         "123",
         "forward",
-        "LFR!",
     ],
 )
 def test_invalid_commands_are_rejected(line):
     with pytest.raises(ValueError):
         parse_commands(line)
+
+
+@pytest.mark.parametrize(
+    "line,expected",
+    [
+        ("L-R", "LR"),
+        ("L,F", "LF"),
+        ("L, R, F", "LRF"),
+        ("L:R:F", "LRF"),
+        ("[L, R, F]", "LRF"),
+        ("LFR!", "LFR"),
+        ("L; F; R;", "LFR"),
+    ],
+)
+def test_commands_allow_non_alphanumeric_characters(line, expected):
+    assert parse_commands(line) == expected
 
 
 # ---------------------------------------------------------------------------
@@ -248,6 +290,40 @@ def test_blank_lines_can_appear_between_records():
             (1, 1, "E", "RFRF"),
             (3, 2, "N", "FRRFLLFFRRFLL"),
             (0, 3, "W", "LLFFFLFLFL"),
+        ],
+    )
+
+
+@pytest.mark.parametrize(
+    "line_ending",
+    [
+        "\n",    # Linux
+        "\r\n",  # Windows
+        "\r",    # Mac
+    ],
+)
+def test_different_line_endings_are_supported(line_ending):
+    """
+    Ensure that input text is parsed correctly with all common line endings.
+    """
+    input_text = line_ending.join(
+        [
+            "5 3",
+            "",
+            "1 1 E",
+            "RFRF",
+            "",
+            "3 2 N",
+            "FRRF",
+        ]
+    )
+
+    assert parse_input(input_text) == (
+        5,
+        3,
+        [
+            (1, 1, "E", "RFRF"),
+            (3, 2, "N", "FRRF"),
         ],
     )
 
@@ -404,15 +480,20 @@ def test_extra_fields_are_rejected():
         )
 
 
-def test_punctuation_is_not_treated_as_whitespace():
-    with pytest.raises(ValueError):
-        parse_input(
-            """
-            5-3
-            1,1,E
-            RFRF
-            """
-        )
+def test_non_alphanumeric_characters_are_ignored():
+    assert parse_input(
+        """
+        5-3
+        1,1,E
+        R,F,R,F
+        """
+    ) == (
+        5,
+        3,
+        [
+            (1, 1, "E", "RFRF"),
+        ],
+    )
 
 
 def test_missing_robot_coordinate_is_rejected():

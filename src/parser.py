@@ -4,16 +4,17 @@ import re
 MAX_COORDINATE = 50
 
 DIMENSIONS_PATTERN = re.compile(
-    r"^\s*(\d+)\s+(\d+)\s*$"
+    r"^[^0-9a-z]*(\d+)[^0-9a-z]+(\d+)[^0-9a-z]*$",
+    re.IGNORECASE,
 )
 
 ROBOT_PATTERN = re.compile(
-    r"^\s*(\d+)\s+(\d+)\s+([NSEW])\s*$",
+    r"^[^0-9a-z]*(\d+)[^0-9a-z]+(\d+)[^0-9a-z]+([NSEW])[^0-9a-z]*$",
     re.IGNORECASE,
 )
 
 COMMANDS_PATTERN = re.compile(
-    r"^[\sLRF]*$",
+    r"^([^0-9a-z]|[LRF])*$",
     re.IGNORECASE,
 )
 
@@ -62,8 +63,9 @@ def parse_commands(text: str) -> str:
     """
     Parse and validate a robot instruction block.
 
-    Whitespace is ignored, so commands may be on one or multiple
-    lines. An empty block represents a commandless robot.
+    Whitespace and non-alphanumeric characters are ignored, so commands may
+    be on one or multiple lines, comma-separated, etc. An empty block represents
+    a commandless robot.
     """
     if COMMANDS_PATTERN.fullmatch(text) is None:
         raise ValueError(f"Invalid robot instructions: {text!r}")
@@ -88,12 +90,14 @@ def parse_input(
     line is treated as that robot's instruction block.
 
     Instruction blocks may contain zero or more lines and may contain
-    arbitrary whitespace. An empty instruction block represents a
-    commandless robot.
+    arbitrary whitespace or non-alphanumeric characters. An empty instruction
+    block represents a commandless robot.
 
-    Apart from whitespace, the input must follow the expected format
-    exactly.
+    Apart from whitespace and non-alphanumeric delimiters, the input must
+    follow the expected format exactly.
     """
+
+    # OS-agnostic splitting (LF/CRLF/CR)
     lines = input_text.splitlines()
 
     # Find the first non-blank line. It must contain the dimensions.
@@ -113,7 +117,7 @@ def parse_input(
     # Robot positions are structural delimiters between instruction
     # blocks. They must occur on their own lines.
     robot_position_pattern = re.compile(
-        r"(?im)^[ \t]*(\d+)[ \t]+(\d+)[ \t]+([NSEW])[ \t]*$"
+        r"(?im)^[^0-9a-z\r\n]*(\d+)[^0-9a-z\r\n]+(\d+)[^0-9a-z\r\n]+([NSEW])[^0-9a-z\r\n]*$"
     )
 
     matches = list(robot_position_pattern.finditer(robot_text))

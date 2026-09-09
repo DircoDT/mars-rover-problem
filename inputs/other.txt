@@ -1,0 +1,13 @@
+﻿    
+	[ 005  :  003 ]	
+
+
+	1, 1, E	
+	> R F R F R F R F	
+
+	3, 2, N	
+	> F R R F L L F F R R F L L	
+
+	0, 3, W	
+	> L L F F F L F L F L	
+
