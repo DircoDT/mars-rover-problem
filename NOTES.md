@@ -3,6 +3,8 @@
 
 This file is for documenting architecture & design decisions during development. It starts with the initial considerations and high-level plan and is then appended to in later commits to add finer details or to provide reasoning behind deviations (e.g. if a previous assumption was inadequate.)
 
+_In a longer-lived project, these initial brainstorming notes would likely evolve into dedicated ARCHITECTURE documentation (describing the current structure) and DECISION records (capturing the history and rationale of key design decisions/ADRs), continuously refined through implementation feedback, code reviews and changes in architectural direction._
+
 ## High-level architecture
 
 ### Choice of language
@@ -80,4 +82,46 @@ So, what are some things that may be added to the inputs, behavioural logic or o
 
 The initial architecture should avoid unnecessarily constraining these future directions. However, the design should not attempt to implement or fully abstract unknown requirements prematurely. New abstractions should be introduced when an actual requirement demonstrates that they are needed.
 
+---
+
+## Implementation details
+
+### Robust input parsing
+
+**DECISION:** The parser is intentionally lenient with whitespace and other non-alphanumeric delimiters, but will produce an error if it encounters other structural deviations from the expected input format.
+
+- Leading/trailing whitespace, multiple spaces, tabs, blank lines and any other non-alphanumeric delimiters are allowed anywhere.
+- The first non-blank line must be the grid dimensions, containing exactly two non-negative integers.
+- Grid dimensions and robot positions exceeding MAX_COORDINATE (50) are not allowed.
+- Robot positioning lines contain exactly `x` `y` `direction`.
+- Orientations and commands are case-insensitive.
+- An input may contain 0 robots.
+- A robot may receive 0 commands. Commands are everything from its coordinate line up to the next robot's coordinate line (or EOF).
+- Text file encoding:
+  - UTF-8 is assumed.
+  - Byte-Order-Mark (BOM) is allowed.
+  - All common EOL character(s) are allowed (\n, \r\n, \r).
+- Assume a reasonable number of robots/commands, such that loading the entire input file into memory at once is acceptable.
+
+### Test organisation
+
+- Unit tests:
+  - Parser - Tests parsing independently
+  - Grid - Tests Grid independently
+  - Robot - Tests Robot behaviour (Grid-dependent)
+- Integration tests:
+  - Simulation - Coordinates multiple Robot instances through a shared Grid
+- End-to-end tests:
+  - E2E - Exercises the application from input file through to final output
+
+
+## Post-Mortem Review
+
+* **Initial docs** [~1h] Design notes weren't explicitly required, but are useful for clarifying initial assumptions, as well as for collaboration and onboarding in production.
+
+* **Program input** [~1h] Intentionally made the parser tolerant of harmless formatting differences while validating input at the boundary. In production, this prevents invalid state from propagating into the domain, making failures more predictable and diagnosable.
+
+* **Simulation logic** [~1h] The domain logic is relatively simple, so did not warrant many abstractions beyond the core domain concepts. `Grid` and `Robot` provide clear responsibilities without unnecessary complexity, keeping the code easier to understand, test and change. Enums would be reasonable, but aren't necessary even with potential command-set expansion.
+
+* **Testing / polish** [~1h] Aimed for 100% coverage with behavioural unit tests, integration tests and end-to-end tests. In production, manual testing may be more cost-effective for some low-risk scenarios, so coverage should be weighed against the effort required and the quality of the tests.
 
