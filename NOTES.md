@@ -95,4 +95,17 @@ The initial architecture should avoid unnecessarily constraining these future di
 - Orientations and commands are case-insensitive.
 - An input may contain 0 robots.
 - A robot may receive 0 commands. Commands are everything from its coordinate line up to the next robot's coordinate line (or EOF).
+- Text file encoding:
+  - UTF-8 is assumed.
+  - Byte-Order-Mark (BOM) is allowed.
+  - All common EOL character(s) are allowed (\n, \r\n, \r).
+
+### Test organisation
+
+- Unit tests:
+  - Parser - Tests parsing independently
+  - Grid - Tests Grid independently
+  - Robot - Tests Robot behaviour (Grid-dependent)
+- Integration tests:
+  - Simulation - Coordinates multiple Robot instances through a shared Grid
 
