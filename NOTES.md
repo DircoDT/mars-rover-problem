@@ -108,4 +108,6 @@ The initial architecture should avoid unnecessarily constraining these future di
   - Robot - Tests Robot behaviour (Grid-dependent)
 - Integration tests:
   - Simulation - Coordinates multiple Robot instances through a shared Grid
+- End-to-end tests:
+  - E2E - Exercises the application from input file through to final output
 
